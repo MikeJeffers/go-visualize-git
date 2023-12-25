@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"regexp"
@@ -23,8 +24,7 @@ func getGitLogRaw(repoPath string) string {
 	cmd := "cd " + repoPath + " && git log --stat --date iso-strict"
 	out, err := exec.Command("bash", "-c", cmd).Output()
 	if err != nil {
-		fmt.Printf("Failed to execute command: %s", cmd)
-		panic(err)
+		log.Fatalf("Failed to execute command: %s", cmd)
 	}
 	return string(out)
 }
@@ -41,13 +41,13 @@ func splitCommits(raw string) []Commit {
 				cleaned = strings.Trim(cleaned, " ")
 				date, err := time.Parse(time.RFC3339, cleaned)
 				if err != nil {
-					panic(err)
+					log.Fatalf("Failed to parse timestamp: %s", cleaned)
 				}
 				details.date = date
 			} else if strings.Contains(line, " insertions(+), ") {
 				data := re.FindAllString(line, -1)
 				if len(data) != 3 {
-					panic("Unexpected result from regex on commit line")
+					log.Fatalf("Unexpected result from regex on commit line: %s", line)
 				}
 				if r, e := strconv.Atoi(data[0]); e == nil {
 					details.filesChanged = r
@@ -85,19 +85,21 @@ func bucketCommitsByTimeRange(commits []Commit, days int) [][]Commit {
 	return buckets
 }
 
-func sumFromCommits(arr []Commit, getValue func(commit Commit) int) int {
-	res := 0
-	for _, commit := range arr {
-		res += getValue(commit)
-	}
-	return res
-}
-
 func main() {
+	if len(os.Args) < 2 {
+		log.Fatal("insufficient positional args")
+	}
+	days := 7
+	if len(os.Args) > 2 {
+		d, err := strconv.Atoi(os.Args[2])
+		if err == nil {
+			days = d
+		}
+	}
+	repoPath := os.Args[1]
 	s := getGitLogRaw(os.Args[1])
 	commits := splitCommits(s)
-	total := len(commits)
-	fmt.Print(total)
+
 	for _, commit := range commits {
 		fmt.Printf("Commit: %s \t %s \t %s \t %s \n",
 			commit.date.Format(time.RFC1123Z),
@@ -106,17 +108,15 @@ func main() {
 			strconv.Itoa(commit.deletions),
 		)
 	}
-	// Reverse
-	for i, j := 0, len(commits)-1; i < j; i, j = i+1, j-1 {
-		commits[i], commits[j] = commits[j], commits[i]
-	}
+	fmt.Println("Total commits in", repoPath, len(commits))
+	Reverse(commits)
 
 	width := 800
 	height := 300
 
 	dc := gg.NewContext(width, height)
 
-	buckets := bucketCommitsByTimeRange(commits, 28)
+	buckets := bucketCommitsByTimeRange(commits, days)
 
 	stepW := float64(width) / float64(len(buckets))
 
@@ -146,7 +146,7 @@ func main() {
 	}
 	scaleChanges := float64(height) / float64(maxChanged)
 	scaleFChanges := float64(height) / float64(maxFChanged)
-	prevX, prevY := float64(0.0), float64(height)
+	prevX, prevY := float64(0), float64(height)
 	for i, bucket := range buckets {
 		totalChanges := sumFromCommits(bucket, getTotalChanges)
 		insertions := sumFromCommits(bucket, getInsertions)
