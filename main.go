@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -30,6 +31,7 @@ func getGitLogRaw(repoPath string) string {
 
 func splitCommits(raw string) []Commit {
 	var commits []Commit
+	re := regexp.MustCompile("[0-9]+")
 	commitDetails := strings.Split(raw, "\ncommit ")
 	for _, commit := range commitDetails {
 		var details Commit
@@ -43,27 +45,19 @@ func splitCommits(raw string) []Commit {
 				}
 				details.date = date
 			} else if strings.Contains(line, " insertions(+), ") {
-				stripped := strings.ReplaceAll(line, " ", "")
-				stripped = strings.ReplaceAll(stripped, "s", "") //Silly plural hack
-				stripped = strings.ReplaceAll(stripped, "filechanged", "")
-				stripped = strings.ReplaceAll(stripped, "inertion(+)", "") // Silly consequence of plural hack
-				stripped = strings.ReplaceAll(stripped, "deletion(-)", "")
-				commaSep := strings.Split(stripped, ",")
-				fChange, err := strconv.Atoi(commaSep[0])
-				if err != nil {
-					panic(err)
+				data := re.FindAllString(line, -1)
+				if len(data) != 3 {
+					panic("Unexpected result from regex on commit line")
 				}
-				insertions, err := strconv.Atoi(commaSep[1])
-				if err != nil {
-					panic(err)
+				if r, e := strconv.Atoi(data[0]); e == nil {
+					details.filesChanged = r
 				}
-				removals, err := strconv.Atoi(commaSep[2])
-				if err != nil {
-					panic(err)
+				if r, e := strconv.Atoi(data[1]); e == nil {
+					details.insertions = r
 				}
-				details.deletions = removals
-				details.insertions = insertions
-				details.filesChanged = fChange
+				if r, e := strconv.Atoi(data[2]); e == nil {
+					details.deletions = r
+				}
 			}
 		}
 		commits = append(commits, details)
@@ -71,12 +65,12 @@ func splitCommits(raw string) []Commit {
 	return commits
 }
 
-func bucketCommitsByMonth(commits []Commit) [][]Commit {
+func bucketCommitsByTimeRange(commits []Commit, days int) [][]Commit {
 	first := commits[0].date
 	last := commits[len(commits)-1].date
 	var buckets [][]Commit
-	for d := first; !d.After(last); d = d.AddDate(0, 0, 28) {
-		next := d.AddDate(0, 0, 28)
+	for d := first; !d.After(last); d = d.AddDate(0, 0, days) {
+		next := d.AddDate(0, 0, days)
 		var commitsInRange []Commit
 		for _, commit := range commits {
 			if commit.date.After(next) {
@@ -120,14 +114,9 @@ func main() {
 	width := 800
 	height := 300
 
-	//stepW := float64(width) / float64(total)
-
 	dc := gg.NewContext(width, height)
-	// dc.SetRGB(255, 255, 255)
-	// dc.DrawRectangle(0, 0, float64(width), float64(height))
-	// dc.Fill()
 
-	buckets := bucketCommitsByMonth(commits)
+	buckets := bucketCommitsByTimeRange(commits, 28)
 
 	stepW := float64(width) / float64(len(buckets))
 
