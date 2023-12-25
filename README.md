@@ -1,0 +1,15 @@
+# Visualize git repo statistics
+Have you ever wanted to produce mediocre bar charts and graph visualizations of your git repository?  Are you tired of relying on "free" remote git hosts to produce these for you?  Have you not tried searching for any other project that likely does exactly what this does but likely a lot better?  
+**Well you've come to the right place!**  
+
+This script will parse your repositories git log and produce an underwhelming graphic with some lackluster cli args to customize the output.  
+Over time there may be more features - we'll see.
+
+Run
+```sh
+go run . ~/path/to/git/repo numDays
+```
+Build
+```sh
+go build
+```
