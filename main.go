@@ -75,8 +75,8 @@ func bucketCommitsByMonth(commits []Commit) [][]Commit {
 	first := commits[0].date
 	last := commits[len(commits)-1].date
 	var buckets [][]Commit
-	for d := first; !d.After(last); d = d.AddDate(0, 1, 0) {
-		next := d.AddDate(0, 1, 0)
+	for d := first; !d.After(last); d = d.AddDate(0, 0, 28) {
+		next := d.AddDate(0, 0, 28)
 		var commitsInRange []Commit
 		for _, commit := range commits {
 			if commit.date.After(next) {
@@ -91,18 +91,10 @@ func bucketCommitsByMonth(commits []Commit) [][]Commit {
 	return buckets
 }
 
-func sumInsertions(arr []Commit) int {
+func sumFromCommits(arr []Commit, getValue func(commit Commit) int) int {
 	res := 0
-	for i := 0; i < len(arr); i++ {
-		res += arr[i].insertions
-	}
-	return res
-}
-
-func sumDeletions(arr []Commit) int {
-	res := 0
-	for i := 0; i < len(arr); i++ {
-		res += arr[i].deletions
+	for _, commit := range arr {
+		res += getValue(commit)
 	}
 	return res
 }
@@ -111,7 +103,7 @@ func main() {
 	s := getGitLogRaw(os.Args[1])
 	commits := splitCommits(s)
 	total := len(commits)
-	fmt.Print(len(commits))
+	fmt.Print(total)
 	for _, commit := range commits {
 		fmt.Printf("Commit: %s \t %s \t %s \t %s \n",
 			commit.date.Format(time.RFC1123Z),
@@ -120,31 +112,79 @@ func main() {
 			strconv.Itoa(commit.deletions),
 		)
 	}
+	// Reverse
 	for i, j := 0, len(commits)-1; i < j; i, j = i+1, j-1 {
 		commits[i], commits[j] = commits[j], commits[i]
 	}
 
 	width := 800
-	height := 400
+	height := 300
 
 	//stepW := float64(width) / float64(total)
 
 	dc := gg.NewContext(width, height)
-	dc.SetRGB(255, 255, 255)
-	dc.DrawRectangle(0, 0, float64(width), float64(height))
-	dc.Fill()
+	// dc.SetRGB(255, 255, 255)
+	// dc.DrawRectangle(0, 0, float64(width), float64(height))
+	// dc.Fill()
 
 	buckets := bucketCommitsByMonth(commits)
 
 	stepW := float64(width) / float64(len(buckets))
+
+	var getTotalChanges = func(commit Commit) int {
+		return commit.deletions + commit.insertions
+	}
+	var getInsertions = func(commit Commit) int {
+		return commit.insertions
+	}
+	var getDeletions = func(commit Commit) int {
+		return commit.deletions
+	}
+	var getFilesChanged = func(commit Commit) int {
+		return commit.filesChanged
+	}
+	maxChanged := 0
+	maxFChanged := 0
+	for _, bucket := range buckets {
+		value := sumFromCommits(bucket, getTotalChanges)
+		fChanges := sumFromCommits(bucket, getFilesChanged)
+		if value > maxChanged {
+			maxChanged = value
+		}
+		if fChanges > maxFChanged {
+			maxFChanged = fChanges
+		}
+	}
+	scaleChanges := float64(height) / float64(maxChanged)
+	scaleFChanges := float64(height) / float64(maxFChanged)
+	prevX, prevY := float64(0.0), float64(height)
 	for i, bucket := range buckets {
-		fmt.Println(sumInsertions(bucket))
-		dc.SetRGB(0, 200, 0)
-		dc.DrawRectangle(stepW*float64(i), float64(height/2), stepW, float64(sumInsertions(bucket))*0.01)
+		totalChanges := sumFromCommits(bucket, getTotalChanges)
+		insertions := sumFromCommits(bucket, getInsertions)
+		deletions := sumFromCommits(bucket, getDeletions)
+		filesChanged := sumFromCommits(bucket, getFilesChanged)
+		totalHeight := float64(totalChanges) * scaleChanges
+		insertHeight := float64(insertions) * scaleChanges
+		deleteHeight := float64(deletions) * scaleChanges
+		fHeight := float64(filesChanged) * scaleFChanges * 0.75
+
+		dc.SetRGB(0, 1, 0)
+		dc.DrawRectangle(stepW*float64(i), float64(height), stepW, -totalHeight)
+		dc.SetRGB(1, 1, 1)
+		dc.SetLineWidth(2)
+		dc.Stroke()
+		dc.SetRGB(0, 1, 0)
+		dc.DrawRectangle(stepW*float64(i), float64(height)-deleteHeight, stepW, -insertHeight)
 		dc.Fill()
-		dc.SetRGB(200, 0, 0)
-		dc.DrawRectangle(stepW*float64(i), float64(height/2), stepW, -float64(sumDeletions(bucket))*0.01)
+		dc.SetRGB(1, 0, 0)
+		dc.DrawRectangle(stepW*float64(i), float64(height), stepW, -deleteHeight)
 		dc.Fill()
+
+		dc.DrawLine(prevX, prevY, stepW*float64(i), float64(height)-fHeight)
+		prevX, prevY = stepW*float64(i), float64(height)-fHeight
+		dc.SetRGB(1, 1, 1)
+		dc.SetLineWidth(1)
+		dc.Stroke()
 	}
 
 	dc.SavePNG("out.png")
