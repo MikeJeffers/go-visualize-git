@@ -64,6 +64,7 @@ func splitCommits(raw string) []Commit {
 }
 
 func bucketCommitsByTimeRange(commits []Commit, days int) [][]Commit {
+	Reverse(commits)
 	first := commits[0].date
 	last := commits[len(commits)-1].date
 	var buckets [][]Commit
@@ -83,7 +84,18 @@ func bucketCommitsByTimeRange(commits []Commit, days int) [][]Commit {
 	return buckets
 }
 
-func main() {
+func printCommitLog(commits []Commit) {
+	for _, commit := range commits {
+		fmt.Printf("Commit: %s \t %s \t %s \t %s \n",
+			commit.date.Format(time.RFC1123Z),
+			strconv.Itoa(commit.filesChanged),
+			strconv.Itoa(commit.insertions),
+			strconv.Itoa(commit.deletions),
+		)
+	}
+}
+
+func parseArgs(args []string) (int, string) {
 	if len(os.Args) < 2 {
 		log.Fatal("insufficient positional args")
 	}
@@ -95,19 +107,17 @@ func main() {
 		}
 	}
 	repoPath := os.Args[1]
-	s := getGitLogRaw(os.Args[1])
+	return days, repoPath
+}
+
+func main() {
+	days, repoPath := parseArgs(os.Args)
+
+	s := getGitLogRaw(repoPath)
 	commits := splitCommits(s)
 
-	for _, commit := range commits {
-		fmt.Printf("Commit: %s \t %s \t %s \t %s \n",
-			commit.date.Format(time.RFC1123Z),
-			strconv.Itoa(commit.filesChanged),
-			strconv.Itoa(commit.insertions),
-			strconv.Itoa(commit.deletions),
-		)
-	}
+	printCommitLog(commits)
 	fmt.Println("Total commits in", repoPath, len(commits))
-	Reverse(commits)
 
 	buckets := bucketCommitsByTimeRange(commits, days)
 
