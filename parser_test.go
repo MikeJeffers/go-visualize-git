@@ -5,7 +5,7 @@ import (
 )
 
 func TestCommitParse(t *testing.T) {
-	commits := splitCommits("commit hash\nDate:   2023-12-25T01:11:27-05:00\n2 files changed, 89 insertions(+))")
+	commits := splitCommits("commit hash\nDate:   2023-12-25T01:11:27-05:00\n2 files changed, 89 insertions(+)")
 	if len(commits) < 1 {
 		t.Fatalf("Failed to yield expected number of commits")
 	} else if commits[0].date.IsZero() {

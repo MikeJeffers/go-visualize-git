@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"regexp"
 	"strconv"
@@ -17,7 +16,6 @@ func splitCommits(raw string) []Commit {
 	for _, commit := range commitDetails {
 		var details Commit
 		for _, line := range strings.Split(commit, "\n") {
-			fmt.Println(line)
 			if strings.Contains(line, "Date:") {
 				cleaned := strings.ReplaceAll(line, "Date:", "")
 				cleaned = strings.Trim(cleaned, " ")
@@ -28,22 +26,32 @@ func splitCommits(raw string) []Commit {
 				details.date = date
 			} else if reChangeLine.MatchString(line) {
 				data := re.FindAllString(line, -1)
-				for _, d := range data {
-					fmt.Println(d)
-				}
-				if len(data) != 3 {
-					log.Fatalf("Unexpected result from regex on commit line: %s", line)
-				}
+				// First result is always the files changed
 				if r, e := strconv.Atoi(data[0]); e == nil {
 					details.filesChanged = r
 				}
-				if r, e := strconv.Atoi(data[1]); e == nil {
-					details.insertions = r
-				}
-				if r, e := strconv.Atoi(data[2]); e == nil {
-					details.deletions = r
+				// All 3 values are found
+				if len(data) == 3 {
+					if r, e := strconv.Atoi(data[1]); e == nil {
+						details.insertions = r
+					}
+					if r, e := strconv.Atoi(data[2]); e == nil {
+						details.deletions = r
+					}
+				} else {
+					//Figure out if number is insertion or deletion
+					if r, e := strconv.Atoi(data[1]); e == nil {
+						if strings.Contains(line, "insertion") {
+							details.insertions = r
+						} else {
+							details.deletions = r
+						}
+					}
 				}
 			}
+		}
+		if details.date.IsZero() {
+			continue
 		}
 		commits = append(commits, details)
 	}
