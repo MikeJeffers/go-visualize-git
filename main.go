@@ -9,13 +9,6 @@ import (
 	"time"
 )
 
-type Commit struct {
-	date         time.Time
-	insertions   int
-	deletions    int
-	filesChanged int
-}
-
 func getGitLogRaw(repoPath string) string {
 	cmd := "cd " + repoPath + " && git log --stat --date iso-strict"
 	out, err := exec.Command("bash", "-c", cmd).Output()
@@ -76,7 +69,7 @@ func main() {
 	days, repoPath := parseArgs(os.Args)
 
 	s := getGitLogRaw(repoPath)
-	commits := splitCommits(s)
+	commits := ParseCommits(s)
 
 	printCommitLog(commits)
 	fmt.Println("Total commits in", repoPath, len(commits))
