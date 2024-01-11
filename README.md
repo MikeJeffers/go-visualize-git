@@ -15,3 +15,7 @@ Build
 ```sh
 go build
 ```
+Test
+```sh
+go test -v
+```
