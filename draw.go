@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/fogleman/gg"
 )
 
@@ -65,5 +67,8 @@ func drawCommits(buckets [][]Commit, width, height int) {
 		dc.Stroke()
 	}
 
-	dc.SavePNG("out.png")
+	err := dc.SavePNG("out.png")
+	if err != nil {
+		log.Fatalf("Failed to save output!")
+	}
 }
