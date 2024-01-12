@@ -1,4 +1,3 @@
-[![golangci-lint](https://github.com/MikeJeffers/go-visualize-git/actions/workflows/golangci-lint.yml/badge.svg)](https://github.com/MikeJeffers/go-visualize-git/actions/workflows/golangci-lint.yml)
 [![Go](https://github.com/MikeJeffers/go-visualize-git/actions/workflows/go.yml/badge.svg)](https://github.com/MikeJeffers/go-visualize-git/actions/workflows/go.yml)
 
 # Visualize git repo statistics
