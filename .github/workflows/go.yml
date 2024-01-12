@@ -49,5 +49,7 @@ jobs:
       uses: vladopajic/go-test-coverage@v2
       with:
         profile: cover.out
-        badge-file-name: coverage.svg
+        local-prefix: github.com/MikeJeffers/go-visualize-git
+        git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
+        git-branch: badges 
 
