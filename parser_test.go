@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -16,6 +17,14 @@ func TestCommitParse(t *testing.T) {
 		t.Errorf("Incorrect insertions value %d", commits[0].insertions)
 	} else if commits[0].deletions != 0 {
 		t.Errorf("Incorrect deletions value %d", commits[0].deletions)
+	}
+}
+
+func TestToString(t *testing.T) {
+	commits := ParseCommits("commit hash\nDate:   2023-12-25T01:11:27-05:00\n2 files changed, 89 insertions(+)")
+	str := commits[0].String()
+	if !strings.Contains(str, "Dec 2023") || !strings.Contains(str, "additions: 89") {
+		t.Errorf("String result unexpected: %s", str)
 	}
 }
 

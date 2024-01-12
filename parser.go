@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"regexp"
 	"strconv"
@@ -71,6 +72,15 @@ func (c *Commit) setValues(line string) {
 			}
 		}
 	}
+}
+
+func (c *Commit) String() string {
+	return fmt.Sprintf("Commit: %s \t files: %s \t additions: %s \t deletions: %s",
+		c.date.Format(time.RFC1123Z),
+		strconv.Itoa(c.filesChanged),
+		strconv.Itoa(c.insertions),
+		strconv.Itoa(c.deletions),
+	)
 }
 
 func ParseCommits(raw string) []Commit {

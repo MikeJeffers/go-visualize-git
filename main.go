@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
-	"time"
 )
 
 func getGitLogRaw(repoPath string) string {
@@ -41,12 +40,7 @@ func bucketCommitsByTimeRange(commits []Commit, days int) [][]Commit {
 
 func printCommitLog(commits []Commit) {
 	for _, commit := range commits {
-		fmt.Printf("Commit: %s \t %s \t %s \t %s \n",
-			commit.date.Format(time.RFC1123Z),
-			strconv.Itoa(commit.filesChanged),
-			strconv.Itoa(commit.insertions),
-			strconv.Itoa(commit.deletions),
-		)
+		fmt.Println(commit.String())
 	}
 }
 
