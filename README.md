@@ -1,4 +1,7 @@
+[![golangci-lint](https://github.com/MikeJeffers/go-visualize-git/actions/workflows/golangci-lint.yml/badge.svg)](https://github.com/MikeJeffers/go-visualize-git/actions/workflows/golangci-lint.yml)
+
 # Visualize git repo statistics
+
 Have you ever wanted to produce mediocre bar charts and graph visualizations of your git repository?  Are you tired of relying on "free" remote git hosts to produce these for you?  Have you not tried searching for any other project that does exactly what this does but a lot better?  
 **Well you've come to the right place!**  
 
