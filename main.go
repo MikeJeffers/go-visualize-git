@@ -45,17 +45,17 @@ func printCommitLog(commits []Commit) {
 }
 
 func parseArgs(args []string) (int, string) {
-	if len(os.Args) < 2 {
+	if len(args) < 2 {
 		log.Fatal("insufficient positional args")
 	}
 	days := 7
-	if len(os.Args) > 2 {
-		d, err := strconv.Atoi(os.Args[2])
+	if len(args) > 2 {
+		d, err := strconv.Atoi(args[2])
 		if err == nil {
 			days = d
 		}
 	}
-	repoPath := os.Args[1]
+	repoPath := args[1]
 	return days, repoPath
 }
 
