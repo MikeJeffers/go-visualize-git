@@ -12,22 +12,22 @@ func TestReverse(t *testing.T) {
 	commitA.FilesChanged = 1
 	commits = append(commits, commitA)
 	Reverse(commits)
-	if len(commits) != 1 || commits[0] != commitA {
+	if len(commits) != 1 || !commits[0].Equals(&commitA) {
 		t.Errorf("Reversing did something unexpected to single item list")
 	}
 	var commitB c.Commit
 	commitB.SetDate("2026-12-02T00:00:00")
 	commitB.FilesChanged = 2
 	commits = append(commits, commitB)
-	if commitA == commitB {
+	if commitA.Equals(&commitB) {
 		t.Errorf("These two commits should be unequal")
 	} else if len(commits) != 2 {
 		t.Errorf("Array of unexpected len %d", len(commits))
-	} else if commits[0] != commitA || commits[1] != commitB {
+	} else if !commits[0].Equals(&commitA) || !commits[1].Equals(&commitB) {
 		t.Errorf("Expected items not in expected order")
 	}
 	Reverse(commits)
-	if commits[1] != commitA || commits[0] != commitB {
+	if !commits[1].Equals(&commitA) || !commits[0].Equals(&commitB) {
 		t.Errorf("Expected items not in expected order")
 	}
 }

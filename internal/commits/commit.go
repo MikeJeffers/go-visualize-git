@@ -108,3 +108,7 @@ func (c *Commit) String() string {
 		strconv.Itoa(c.Deletions),
 	)
 }
+
+func (c *Commit) Equals(other *Commit) bool {
+	return c.Date == other.Date && c.Deletions == other.Deletions && c.FilesChanged == other.FilesChanged && c.Insertions == other.Insertions
+}
