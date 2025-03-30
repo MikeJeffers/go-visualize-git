@@ -4,21 +4,12 @@ import (
 	"fmt"
 	c "gogitlog/internal/commits"
 	d "gogitlog/internal/drawing"
+	g "gogitlog/internal/gitlog"
 	utils "gogitlog/internal/utils"
 	"log"
 	"os"
-	"os/exec"
 	"strconv"
 )
-
-func getGitLogRaw(repoPath string) string {
-	cmd := "cd " + repoPath + " && git log --stat --date iso-strict"
-	out, err := exec.Command("bash", "-c", cmd).Output()
-	if err != nil {
-		log.Fatalf("Failed to execute command: %s", cmd)
-	}
-	return string(out)
-}
 
 func bucketCommitsByTimeRange(commitArray []c.Commit, days int) [][]c.Commit {
 	utils.Reverse(commitArray)
@@ -65,7 +56,7 @@ func parseArgs(args []string) (int, string) {
 func main() {
 	days, repoPath := parseArgs(os.Args)
 
-	s := getGitLogRaw(repoPath)
+	s := g.GitLog(repoPath)
 	commits := c.ParseCommits(s)
 
 	printCommitLog(commits)
