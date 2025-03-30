@@ -7,19 +7,31 @@ import (
 	g "gogitlog/internal/gitlog"
 	utils "gogitlog/internal/utils"
 	"log"
+	"maps"
 	"os"
+	"slices"
 	"strconv"
 )
 
-func bucketCommitsByTimeRange(commitArray []c.Commit, days int) [][]c.Commit {
-	utils.Reverse(commitArray)
-	first := commitArray[0].Date
-	last := commitArray[len(commitArray)-1].Date
+func getAllTopLevelDirs(commits []c.Commit) []string {
+	commonDirsMap := map[string]bool{}
+	for _, commit := range commits {
+		for dir, _ := range commit.ChangesByDir {
+			commonDirsMap[dir] = true
+		}
+	}
+	return slices.Sorted(maps.Keys(commonDirsMap))
+}
+
+func bucketCommitsByTimeRange(commits []c.Commit, days int) [][]c.Commit {
+	utils.Reverse(commits)
+	first := commits[0].Date
+	last := commits[len(commits)-1].Date
 	var buckets [][]c.Commit
 	for date := first; !date.After(last); date = date.AddDate(0, 0, days) {
 		next := date.AddDate(0, 0, days)
 		var commitsInRange []c.Commit
-		for _, commit := range commitArray {
+		for _, commit := range commits {
 			if commit.Date.After(next) {
 				break
 			} else if commit.Date.Before(date) {
@@ -66,5 +78,8 @@ func main() {
 
 	buckets := bucketCommitsByTimeRange(commits, days)
 
-	d.DrawCommits(buckets, 800, 300)
+	commonDirs := getAllTopLevelDirs(commits)
+	d.DrawCommitsByDirChanged(buckets, commonDirs, 800, 300)
+
+	//d.DrawCommits(buckets, 800, 300)
 }
