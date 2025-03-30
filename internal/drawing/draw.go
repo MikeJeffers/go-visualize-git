@@ -1,31 +1,34 @@
-package main
+package drawing
 
 import (
 	"log"
 
+	c "gogitlog/internal/commits"
+	utils "gogitlog/internal/utils"
+
 	"github.com/fogleman/gg"
 )
 
-var getTotalChanges = func(commit Commit) int {
-	return commit.deletions + commit.insertions
+var getTotalChanges = func(commit c.Commit) int {
+	return commit.Deletions + commit.Insertions
 }
-var getInsertions = func(commit Commit) int {
-	return commit.insertions
+var getInsertions = func(commit c.Commit) int {
+	return commit.Insertions
 }
-var getDeletions = func(commit Commit) int {
-	return commit.deletions
+var getDeletions = func(commit c.Commit) int {
+	return commit.Deletions
 }
-var getFilesChanged = func(commit Commit) int {
-	return commit.filesChanged
+var getFilesChanged = func(commit c.Commit) int {
+	return commit.FilesChanged
 }
 
-func drawCommits(buckets [][]Commit, width, height int) {
+func DrawCommits(buckets [][]c.Commit, width, height int) {
 	stepW := float64(width) / float64(len(buckets))
 	maxChanged := 0
 	maxFChanged := 0
 	for _, bucket := range buckets {
-		value := sumFromCommits(bucket, getTotalChanges)
-		fChanges := sumFromCommits(bucket, getFilesChanged)
+		value := utils.SumFromCommits(bucket, getTotalChanges)
+		fChanges := utils.SumFromCommits(bucket, getFilesChanged)
 		if value > maxChanged {
 			maxChanged = value
 		}
@@ -39,10 +42,10 @@ func drawCommits(buckets [][]Commit, width, height int) {
 	scaleFChanges := float64(height) / float64(maxFChanged)
 	prevX, prevY := float64(0), float64(height)
 	for i, bucket := range buckets {
-		totalChanges := sumFromCommits(bucket, getTotalChanges)
-		insertions := sumFromCommits(bucket, getInsertions)
-		deletions := sumFromCommits(bucket, getDeletions)
-		filesChanged := sumFromCommits(bucket, getFilesChanged)
+		totalChanges := utils.SumFromCommits(bucket, getTotalChanges)
+		insertions := utils.SumFromCommits(bucket, getInsertions)
+		deletions := utils.SumFromCommits(bucket, getDeletions)
+		filesChanged := utils.SumFromCommits(bucket, getFilesChanged)
 		totalHeight := float64(totalChanges) * scaleChanges
 		insertHeight := float64(insertions) * scaleChanges
 		deleteHeight := float64(deletions) * scaleChanges

@@ -1,6 +1,10 @@
-package main
+package utils
 
-func sumFromCommits(arr []Commit, getValue func(commit Commit) int) int {
+import (
+	c "gogitlog/internal/commits"
+)
+
+func SumFromCommits(arr []c.Commit, getValue func(commit c.Commit) int) int {
 	res := 0
 	for _, commit := range arr {
 		res += getValue(commit)
@@ -8,7 +12,7 @@ func sumFromCommits(arr []Commit, getValue func(commit Commit) int) int {
 	return res
 }
 
-func Reverse(arr []Commit) {
+func Reverse(arr []c.Commit) {
 	for i, j := 0, len(arr)-1; i < j; i, j = i+1, j-1 {
 		arr[i], arr[j] = arr[j], arr[i]
 	}
