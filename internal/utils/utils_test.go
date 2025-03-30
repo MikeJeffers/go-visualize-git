@@ -7,7 +7,7 @@ import (
 
 func TestReverse(t *testing.T) {
 	var commits []c.Commit
-	var commitA c.Commit
+	commitA := c.NewCommit()
 	commitA.SetDate("2025-12-01T00:00:00")
 	commitA.FilesChanged = 1
 	commits = append(commits, commitA)
@@ -15,7 +15,7 @@ func TestReverse(t *testing.T) {
 	if len(commits) != 1 || !commits[0].Equals(&commitA) {
 		t.Errorf("Reversing did something unexpected to single item list")
 	}
-	var commitB c.Commit
+	commitB := c.NewCommit()
 	commitB.SetDate("2026-12-02T00:00:00")
 	commitB.FilesChanged = 2
 	commits = append(commits, commitB)
@@ -35,7 +35,7 @@ func TestReverse(t *testing.T) {
 func TestSumFromCommits(t *testing.T) {
 	var commits []c.Commit
 	for i := 0; i < 10; i++ {
-		var commit c.Commit
+		commit := c.NewCommit()
 		commit.Insertions = i
 		commits = append(commits, commit)
 	}

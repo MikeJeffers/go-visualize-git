@@ -3,7 +3,9 @@ package commits
 import (
 	"fmt"
 	"log"
+	"maps"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -23,6 +25,11 @@ type Commit struct {
 	Deletions     int
 	FilesChanged  int
 	ChangesByFile map[string]int
+	ChangesByDir  map[string]int
+}
+
+func NewCommit() Commit {
+	return Commit{ChangesByFile: map[string]int{}, ChangesByDir: map[string]int{}}
 }
 
 func (c *Commit) IsValid() bool {
@@ -32,6 +39,10 @@ func (c *Commit) IsValid() bool {
 func (c *Commit) ProcessCommitRaw(raw string) {
 	for _, line := range strings.Split(raw, "\n") {
 		c.processLine(line)
+	}
+	topLevelPaths := c.GetCommonTopLevelDirs()
+	for _, path := range topLevelPaths {
+		c.ChangesByDir[path] = c.GetSumChangesByPath(path)
 	}
 }
 
@@ -52,9 +63,6 @@ func (c *Commit) trackFileChange(line string) {
 	numChanges, err := strconv.Atoi(strings.Trim(splits[1], " "))
 	if err != nil {
 		log.Fatalf("Failed to parse  %s", splits[1])
-	}
-	if c.ChangesByFile == nil {
-		c.ChangesByFile = make(map[string]int)
 	}
 	_, ok := c.ChangesByFile[filename]
 	if !ok {
@@ -98,6 +106,31 @@ func (c *Commit) SetValues(line string) {
 			}
 		}
 	}
+}
+
+func (c *Commit) GetCommonTopLevelDirs() []string {
+	commonDirs := map[string]bool{}
+	for key, _ := range c.ChangesByFile {
+		str := key
+		if strings.Contains(str, ".") {
+			str = strings.Split(key, ".")[0]
+		}
+		if strings.Contains(str, "/") {
+			str = strings.Split(key, "/")[0]
+		}
+		commonDirs[str] = true
+	}
+	return slices.Sorted(maps.Keys(commonDirs))
+}
+
+func (c *Commit) GetSumChangesByPath(path string) int {
+	sum := 0
+	for key, val := range c.ChangesByFile {
+		if strings.Contains(key, path) {
+			sum += val
+		}
+	}
+	return sum
 }
 
 func (c *Commit) String() string {

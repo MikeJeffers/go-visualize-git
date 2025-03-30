@@ -29,7 +29,7 @@ func TestToString(t *testing.T) {
 }
 
 func TestCommitDateParse(t *testing.T) {
-	var commit Commit
+	commit := NewCommit()
 	commit.SetDate("Date:   2023-12-25T01:11:27-05:00")
 	if commit.Date.IsZero() {
 		t.Errorf("Failed to parse date %s", commit.Date.String())
@@ -37,7 +37,7 @@ func TestCommitDateParse(t *testing.T) {
 }
 
 func TestCommitInvalidDateParse(t *testing.T) {
-	var commit Commit
+	commit := NewCommit()
 	commit.SetDate("Date:   2023-1BLARG2-25T01:11:ohno27-05:00")
 	if !commit.Date.IsZero() {
 		t.Errorf("Should have failed to parse date! %s", commit.Date.String())
@@ -48,7 +48,7 @@ func TestCommitInvalidDateParse(t *testing.T) {
 }
 
 func TestCommitChangesParse(t *testing.T) {
-	var commit Commit
+	commit := NewCommit()
 	commit.SetValues("2 files changed, 89 insertions(+)")
 	if commit.FilesChanged != 2 {
 		t.Errorf("Incorrect filesChanged value %d", commit.FilesChanged)
@@ -60,7 +60,7 @@ func TestCommitChangesParse(t *testing.T) {
 }
 
 func TestCommitChangesParse2(t *testing.T) {
-	var commit Commit
+	commit := NewCommit()
 	commit.SetValues("1 file changed, 1 deletion(-)")
 	if commit.FilesChanged != 1 {
 		t.Errorf("Incorrect filesChanged value %d", commit.FilesChanged)
@@ -72,7 +72,7 @@ func TestCommitChangesParse2(t *testing.T) {
 }
 
 func TestCommitChangesParse3(t *testing.T) {
-	var commit Commit
+	commit := NewCommit()
 	commit.SetValues(" 1 file changed, 1 insertion(+), 1 deletion(-)")
 	if commit.FilesChanged != 1 {
 		t.Errorf("Incorrect filesChanged value %d", commit.FilesChanged)
