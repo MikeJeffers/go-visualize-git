@@ -35,6 +35,7 @@ func bucketCommitsByTimeRange(commitArray []c.Commit, days int) [][]c.Commit {
 func printCommitLog(commits []c.Commit) {
 	for _, commit := range commits {
 		fmt.Println(commit.String())
+		// fmt.Println(commit.ChangesByFile)
 	}
 }
 

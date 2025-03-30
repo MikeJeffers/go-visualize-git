@@ -3,16 +3,26 @@ package commits
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 )
 
+var (
+	numberRe    = regexp.MustCompile("[0-9]+")
+	changesRe   = regexp.MustCompile("(file changed|files changed)")
+	dateCleanRe = regexp.MustCompile(`(Date:|\s)`)
+	// Regex for "  | 12 +++---" trailing each file change
+	fileChangeRe = regexp.MustCompile(`(\s+\|\s+[0-9]+\s+[+-]+)`)
+)
+
 type Commit struct {
-	Date         time.Time
-	Insertions   int
-	Deletions    int
-	FilesChanged int
+	Date          time.Time
+	Insertions    int
+	Deletions     int
+	FilesChanged  int
+	ChangesByFile map[string]int
 }
 
 func (c *Commit) IsValid() bool {
@@ -30,6 +40,27 @@ func (c *Commit) processLine(line string) {
 		c.SetDate(line)
 	} else if changesRe.MatchString(line) {
 		c.SetValues(line)
+	} else if fileChangeRe.MatchString(line) {
+		c.trackFileChange(line)
+	}
+}
+
+func (c *Commit) trackFileChange(line string) {
+	trimmed := strings.Trim(line, " +-")
+	splits := strings.Split(trimmed, " | ")
+	filename := strings.Trim(splits[0], " ")
+	numChanges, err := strconv.Atoi(strings.Trim(splits[1], " "))
+	if err != nil {
+		log.Fatalf("Failed to parse  %s", splits[1])
+	}
+	if c.ChangesByFile == nil {
+		c.ChangesByFile = make(map[string]int)
+	}
+	_, ok := c.ChangesByFile[filename]
+	if !ok {
+		c.ChangesByFile[filename] = numChanges
+	} else {
+		c.ChangesByFile[filename] += numChanges
 	}
 }
 

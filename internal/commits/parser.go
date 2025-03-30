@@ -1,14 +1,7 @@
 package commits
 
 import (
-	"regexp"
 	"strings"
-)
-
-var (
-	numberRe    = regexp.MustCompile("[0-9]+")
-	changesRe   = regexp.MustCompile("(file changed|files changed)")
-	dateCleanRe = regexp.MustCompile(`(Date:|\s)`)
 )
 
 func ParseCommits(raw string) []Commit {
