@@ -112,9 +112,6 @@ func (c *Commit) GetCommonTopLevelDirs() []string {
 	commonDirs := map[string]bool{}
 	for key, _ := range c.ChangesByFile {
 		str := key
-		if strings.Contains(str, ".") {
-			str = strings.Split(key, ".")[0]
-		}
 		if strings.Contains(str, "/") {
 			str = strings.Split(key, "/")[0]
 		}
