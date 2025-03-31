@@ -110,7 +110,7 @@ func (c *Commit) SetValues(line string) {
 
 func (c *Commit) GetCommonTopLevelDirs() []string {
 	commonDirs := map[string]bool{}
-	for key, _ := range c.ChangesByFile {
+	for key := range c.ChangesByFile {
 		str := key
 		if strings.Contains(str, "/") {
 			str = strings.Split(key, "/")[0]
@@ -140,5 +140,5 @@ func (c *Commit) String() string {
 }
 
 func (c *Commit) Equals(other *Commit) bool {
-	return c.Date == other.Date && c.Deletions == other.Deletions && c.FilesChanged == other.FilesChanged && c.Insertions == other.Insertions
+	return c.Date.Equal(other.Date) && c.Deletions == other.Deletions && c.FilesChanged == other.FilesChanged && c.Insertions == other.Insertions
 }

@@ -16,7 +16,7 @@ import (
 func getAllTopLevelDirs(commits []c.Commit) []string {
 	commonDirsMap := map[string]bool{}
 	for _, commit := range commits {
-		for dir, _ := range commit.ChangesByDir {
+		for dir := range commit.ChangesByDir {
 			commonDirsMap[dir] = true
 		}
 	}
@@ -47,7 +47,6 @@ func bucketCommitsByTimeRange(commits []c.Commit, days int) [][]c.Commit {
 func printCommitLog(commits []c.Commit) {
 	for _, commit := range commits {
 		fmt.Println(commit.String())
-		fmt.Println(commit.ChangesByFile)
 		fmt.Println(commit.ChangesByDir)
 	}
 }
