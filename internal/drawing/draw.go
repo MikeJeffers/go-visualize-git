@@ -32,8 +32,8 @@ func DrawCommits(buckets [][]c.Commit, width, height int) {
 	maxChanged := 0
 	maxFChanged := 0
 	for _, bucket := range buckets {
-		value := utils.SumFromCommits(bucket, getTotalChanges)
-		fChanges := utils.SumFromCommits(bucket, getFilesChanged)
+		value := utils.SumFromCallable(bucket, getTotalChanges)
+		fChanges := utils.SumFromCallable(bucket, getFilesChanged)
 		if value > maxChanged {
 			maxChanged = value
 		}
@@ -47,10 +47,10 @@ func DrawCommits(buckets [][]c.Commit, width, height int) {
 	scaleFChanges := float64(height) / float64(maxFChanged)
 	prevX, prevY := float64(0), float64(height)
 	for i, bucket := range buckets {
-		totalChanges := utils.SumFromCommits(bucket, getTotalChanges)
-		insertions := utils.SumFromCommits(bucket, getInsertions)
-		deletions := utils.SumFromCommits(bucket, getDeletions)
-		filesChanged := utils.SumFromCommits(bucket, getFilesChanged)
+		totalChanges := utils.SumFromCallable(bucket, getTotalChanges)
+		insertions := utils.SumFromCallable(bucket, getInsertions)
+		deletions := utils.SumFromCallable(bucket, getDeletions)
+		filesChanged := utils.SumFromCallable(bucket, getFilesChanged)
 		totalHeight := float64(totalChanges) * scaleChanges
 		insertHeight := float64(insertions) * scaleChanges
 		deleteHeight := float64(deletions) * scaleChanges
@@ -92,7 +92,7 @@ func DrawCommitsByDirChanged(buckets [][]c.Commit, dirs []string, width, height 
 	stepW := float64(width) / float64(len(buckets))
 	maxChanged := 0
 	for _, bucket := range buckets {
-		value := utils.SumFromCommits(bucket, getTotalChanges)
+		value := utils.SumFromCallable(bucket, getTotalChanges)
 		if value > maxChanged {
 			maxChanged = value
 		}
@@ -131,7 +131,7 @@ func DrawCommitsByDirChanged(buckets [][]c.Commit, dirs []string, width, height 
 	for i, bucket := range buckets {
 		y := float64(height)
 		for j, dir := range dirs {
-			changesInDir := utils.SumFromCommits(bucket, func(commit c.Commit) int {
+			changesInDir := utils.SumFromCallable(bucket, func(commit c.Commit) int {
 				value, ok := commit.ChangesByDir[dir]
 				if !ok {
 					return 0
@@ -145,7 +145,7 @@ func DrawCommitsByDirChanged(buckets [][]c.Commit, dirs []string, width, height 
 			dc.Fill()
 			y -= cHeight
 		}
-		totalChanges := utils.SumFromCommits(bucket, getTotalChanges)
+		totalChanges := utils.SumFromCallable(bucket, getTotalChanges)
 		totalHeight := float64(totalChanges) * scaleChanges
 
 		dc.SetRGB(0, 1, 0)

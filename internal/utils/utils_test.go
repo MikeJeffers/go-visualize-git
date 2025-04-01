@@ -1,46 +1,49 @@
 package utils
 
 import (
-	c "gogitlog/internal/commits"
 	"testing"
 )
 
 func TestReverse(t *testing.T) {
-	var commits []c.Commit
-	commitA := c.NewCommit()
-	commitA.SetDate("2025-12-01T00:00:00")
-	commitA.FilesChanged = 1
-	commits = append(commits, commitA)
-	Reverse(commits)
-	if len(commits) != 1 || !commits[0].Equals(&commitA) {
-		t.Errorf("Reversing did something unexpected to single item list")
+	nums := []int{1, 2, 3}
+	Reverse(nums)
+	if nums[2] != 1 {
+		t.Errorf("Last element should be the first")
 	}
-	commitB := c.NewCommit()
-	commitB.SetDate("2026-12-02T00:00:00")
-	commitB.FilesChanged = 2
-	commits = append(commits, commitB)
-	if commitA.Equals(&commitB) {
-		t.Errorf("These two commits should be unequal")
-	} else if len(commits) != 2 {
-		t.Errorf("Array of unexpected len %d", len(commits))
-	} else if !commits[0].Equals(&commitA) || !commits[1].Equals(&commitB) {
-		t.Errorf("Expected items not in expected order")
+	if nums[0] != 3 {
+		t.Errorf("First element should be the last")
 	}
-	Reverse(commits)
-	if !commits[1].Equals(&commitA) || !commits[0].Equals(&commitB) {
-		t.Errorf("Expected items not in expected order")
+	if len(nums) != 3 {
+		t.Errorf("Length changed unexpectedly %d", len(nums))
+	}
+}
+func TestReverseEmpty(t *testing.T) {
+	nums := []int{}
+	if len(nums) != 0 {
+		t.Errorf("Should be empty")
+	}
+	Reverse(nums)
+	if len(nums) != 0 {
+		t.Errorf("Should continue to be empty")
 	}
 }
 
-func TestSumFromCommits(t *testing.T) {
-	var commits []c.Commit
-	for i := 0; i < 10; i++ {
-		commit := c.NewCommit()
-		commit.Insertions = i
-		commits = append(commits, commit)
+func TestSumCallable(t *testing.T) {
+	nums := []int{1, 2, 3}
+	sum := SumFromCallable(nums, func(value int) int {
+		return value
+	})
+	if sum != 1+2+3 {
+		t.Errorf("Unexpected sum %d", sum)
 	}
-	sum := SumFromCommits(commits, func(commit c.Commit) int { return commit.Insertions })
-	if sum != 45 {
+}
+
+func TestSumCallableEmpty(t *testing.T) {
+	nums := []int{}
+	sum := SumFromCallable(nums, func(value int) int {
+		return value
+	})
+	if sum != 0 {
 		t.Errorf("Unexpected sum %d", sum)
 	}
 }
