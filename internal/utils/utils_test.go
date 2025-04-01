@@ -4,6 +4,18 @@ import (
 	"testing"
 )
 
+func TestArgParse(t *testing.T) {
+	args := []string{"cmd", "~/path/to/git/repo", "13", "1"}
+	days, repoPath, mode := ParseArgs(args)
+	if days != 13 {
+		t.Errorf("Arg parsed days: %d", days)
+	} else if repoPath != "~/path/to/git/repo" {
+		t.Errorf("Arg parsed repoPath: %s", repoPath)
+	} else if mode != ByDirs {
+		t.Errorf("Arg parsed mode: %d", mode)
+	}
+}
+
 func TestReverse(t *testing.T) {
 	nums := []int{1, 2, 3}
 	Reverse(nums)
