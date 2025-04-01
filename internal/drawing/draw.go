@@ -81,7 +81,6 @@ func DrawCommits(buckets [][]c.Commit, width, height int) {
 	}
 }
 
-// TODO
 func DrawCommitsByDirChanged(buckets [][]c.Commit, dirs []string, width, height int) {
 	font, err := truetype.Parse(goregular.TTF)
 	if err != nil {
@@ -140,7 +139,6 @@ func DrawCommitsByDirChanged(buckets [][]c.Commit, dirs []string, width, height 
 			})
 			cHeight := float64(changesInDir) * scaleChanges
 			dc.SetHexColor(fmt.Sprintf("#%06X", colors[j]))
-			// fmt.Println(fmt.Sprintf("#%06X", colors[j]))
 			dc.DrawRectangle(stepW*float64(i), y, stepW, -cHeight)
 			dc.Fill()
 			y -= cHeight
