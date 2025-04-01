@@ -30,7 +30,6 @@ func printCommitLog(commits []c.Commit) {
 
 func main() {
 	days, repoPath, mode := utils.ParseArgs(os.Args)
-	fmt.Printf("%+x %+x %+x\n", days, repoPath, mode)
 
 	s := g.GitLog(repoPath)
 	commits := c.ParseCommits(s)
@@ -40,11 +39,12 @@ func main() {
 
 	buckets := c.BucketCommitsByTimeRange(commits, days)
 
-	commonDirs := getAllTopLevelDirs(commits)
 	switch mode {
 	case utils.AdditionsDeletions:
 		d.DrawCommits(buckets, 800, 300)
 	case utils.ByDirs:
+		// TODO: specialized to characterizing work inside of top level directories
+		commonDirs := getAllTopLevelDirs(commits)
 		d.DrawCommitsByDirChanged(buckets, commonDirs, 800, 300)
 	default:
 		d.DrawCommits(buckets, 800, 300)

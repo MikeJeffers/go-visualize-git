@@ -35,7 +35,7 @@ func ParseArgs(args []string) (int, string, StackedBarMode) {
 	}
 	mode := AdditionsDeletions
 	if len(args) > 3 {
-		parsedVal, err := strconv.Atoi(args[2])
+		parsedVal, err := strconv.Atoi(args[3])
 		if err == nil && IsValidMode(parsedVal) {
 			mode = StackedBarMode(parsedVal)
 		}

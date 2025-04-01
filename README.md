@@ -12,7 +12,7 @@ Over time there may be more features - we'll see.
 
 Run
 ```sh
-go run . ~/path/to/git/repo numDays
+go run . ~/path/to/git/repo numDays mode[0|1]
 ```
 Build
 ```sh
