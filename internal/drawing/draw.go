@@ -23,9 +23,6 @@ var getInsertions = func(commit c.Commit) int {
 var getDeletions = func(commit c.Commit) int {
 	return commit.Deletions
 }
-var getFilesChanged = func(commit c.Commit) int {
-	return commit.FilesChanged
-}
 
 type Drawable interface {
 	Draw(dc *gg.Context)
