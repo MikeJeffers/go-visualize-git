@@ -27,58 +27,77 @@ var getFilesChanged = func(commit c.Commit) int {
 	return commit.FilesChanged
 }
 
-func DrawCommits(buckets [][]c.Commit, width, height int) {
-	stepW := float64(width) / float64(len(buckets))
-	maxChanged := 0
-	maxFChanged := 0
-	for _, bucket := range buckets {
-		value := utils.SumFromCallable(bucket, getTotalChanges)
-		fChanges := utils.SumFromCallable(bucket, getFilesChanged)
-		if value > maxChanged {
-			maxChanged = value
-		}
-		if fChanges > maxFChanged {
-			maxFChanged = fChanges
-		}
-	}
+type Drawable interface {
+	Draw(dc *gg.Context)
+}
 
+type AddDelStackedBar struct {
+	x  float64
+	y  float64
+	y1 float64
+	w  float64
+	hd float64
+	hi float64
+}
+
+func (b *AddDelStackedBar) Draw(dc *gg.Context) {
+	dc.SetRGB(0, 1, 0)
+	dc.DrawRectangle(b.x, b.y, b.w, b.hd+b.hi)
+	dc.SetRGB(1, 1, 1)
+	dc.SetLineWidth(2)
+	dc.Stroke()
+	dc.SetRGB(0, 1, 0)
+	dc.DrawRectangle(b.x, b.y+b.hd, b.w, b.hi)
+	dc.Fill()
+	dc.SetRGB(1, 0, 0)
+	dc.DrawRectangle(b.x, b.y, b.w, b.hd)
+	dc.Fill()
+}
+
+func DrawAllOnNewCanvas(drawables []Drawable, width, height int) {
 	dc := gg.NewContext(width, height)
-	scaleChanges := float64(height) / float64(maxChanged)
-	scaleFChanges := float64(height) / float64(maxFChanged)
-	prevX, prevY := float64(0), float64(height)
-	for i, bucket := range buckets {
-		totalChanges := utils.SumFromCallable(bucket, getTotalChanges)
-		insertions := utils.SumFromCallable(bucket, getInsertions)
-		deletions := utils.SumFromCallable(bucket, getDeletions)
-		filesChanged := utils.SumFromCallable(bucket, getFilesChanged)
-		totalHeight := float64(totalChanges) * scaleChanges
-		insertHeight := float64(insertions) * scaleChanges
-		deleteHeight := float64(deletions) * scaleChanges
-		fHeight := float64(filesChanged) * scaleFChanges * 0.75
-
-		dc.SetRGB(0, 1, 0)
-		dc.DrawRectangle(stepW*float64(i), float64(height), stepW, -totalHeight)
-		dc.SetRGB(1, 1, 1)
-		dc.SetLineWidth(2)
-		dc.Stroke()
-		dc.SetRGB(0, 1, 0)
-		dc.DrawRectangle(stepW*float64(i), float64(height)-deleteHeight, stepW, -insertHeight)
-		dc.Fill()
-		dc.SetRGB(1, 0, 0)
-		dc.DrawRectangle(stepW*float64(i), float64(height), stepW, -deleteHeight)
-		dc.Fill()
-
-		dc.DrawLine(prevX, prevY, stepW*float64(i), float64(height)-fHeight)
-		prevX, prevY = stepW*float64(i), float64(height)-fHeight
-		dc.SetRGB(1, 1, 1)
-		dc.SetLineWidth(1)
-		dc.Stroke()
+	for _, drawable := range drawables {
+		drawable.Draw(dc)
 	}
-
 	err := dc.SavePNG("out.png")
 	if err != nil {
 		log.Fatalf("Failed to save output!")
 	}
+}
+
+func ComputeBarChart(buckets [][]c.Commit, width, height int) []Drawable {
+	stepW := float64(width) / float64(len(buckets))
+	maxChanged := 0
+	for _, bucket := range buckets {
+		value := utils.SumFromCallable(bucket, getTotalChanges)
+		if value > maxChanged {
+			maxChanged = value
+		}
+	}
+	scaleChanges := float64(height) / float64(maxChanged)
+	bars := []Drawable{}
+	for i, bucket := range buckets {
+		insertions := utils.SumFromCallable(bucket, getInsertions)
+		deletions := utils.SumFromCallable(bucket, getDeletions)
+		insertHeight := float64(insertions) * scaleChanges
+		deleteHeight := float64(deletions) * scaleChanges
+
+		bar := &AddDelStackedBar{
+			x:  stepW * float64(i),
+			y:  float64(height),
+			y1: float64(height) - deleteHeight,
+			w:  stepW,
+			hd: -deleteHeight,
+			hi: -insertHeight,
+		}
+		bars = append(bars, bar)
+	}
+	return bars
+}
+
+func DrawCommits(buckets [][]c.Commit, width, height int) {
+	bars := ComputeBarChart(buckets, width, height)
+	DrawAllOnNewCanvas(bars, width, height)
 }
 
 func DrawCommitsByDirChanged(buckets [][]c.Commit, dirs []string, width, height int) {

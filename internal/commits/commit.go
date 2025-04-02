@@ -37,7 +37,7 @@ func (c *Commit) IsValid() bool {
 }
 
 func (c *Commit) ProcessCommitRaw(raw string) {
-	for _, line := range strings.Split(raw, "\n") {
+	for line := range strings.SplitSeq(raw, "\n") {
 		c.processLine(line)
 	}
 	topLevelPaths := c.GetCommonTopLevelDirs()
@@ -59,7 +59,7 @@ func (c *Commit) processLine(line string) {
 func (c *Commit) trackFileChange(line string) {
 	trimmed := strings.Trim(line, " +-")
 	splits := strings.Split(trimmed, " | ")
-	filename := strings.Trim(splits[0], " ")
+	filename := strings.Trim(splits[0], " \t\n\r")
 	numChanges, err := strconv.Atoi(strings.Trim(splits[1], " "))
 	if err != nil {
 		log.Fatalf("Failed to parse  %s", splits[1])
@@ -141,4 +141,21 @@ func (c *Commit) String() string {
 
 func (c *Commit) Equals(other *Commit) bool {
 	return c.Date.Equal(other.Date) && c.Deletions == other.Deletions && c.FilesChanged == other.FilesChanged && c.Insertions == other.Insertions
+}
+
+func GetAllTopLevelDirs(commits []Commit) []string {
+	commonDirsMap := map[string]bool{}
+	for _, commit := range commits {
+		for dir := range commit.ChangesByDir {
+			commonDirsMap[dir] = true
+		}
+	}
+	return slices.Sorted(maps.Keys(commonDirsMap))
+}
+
+func PrintCommitLog(commits []Commit) {
+	for _, commit := range commits {
+		fmt.Println(commit.String())
+		fmt.Println(commit.ChangesByDir)
+	}
 }
