@@ -98,11 +98,6 @@ func DrawCommits(buckets [][]c.Commit, width, height int) {
 }
 
 func DrawCommitsByDirChanged(buckets [][]c.Commit, dirs []string, width, height int) {
-	font, err := truetype.Parse(goregular.TTF)
-	if err != nil {
-		log.Fatal(err)
-	}
-	face := truetype.NewFace(font, &truetype.Options{Size: 8})
 
 	stepW := float64(width) / float64(len(buckets))
 	maxChanged := 0
@@ -118,12 +113,17 @@ func DrawCommitsByDirChanged(buckets [][]c.Commit, dirs []string, width, height 
 	}
 
 	legendH := 120
-	dc := gg.NewContext(width, height+legendH)
 
 	stepXLegend := width / 10
 	stepYLegend := legendH / 4
 	xLegend := stepXLegend / 4
 	yLegend := height + stepYLegend/2
+	font, err := truetype.Parse(goregular.TTF)
+	if err != nil {
+		log.Fatal(err)
+	}
+	face := truetype.NewFace(font, &truetype.Options{Size: 8})
+	dc := gg.NewContext(width, height+legendH)
 	dc.SetFontFace(face)
 	for j, dir := range dirs {
 		if strings.ContainsAny(dir, ".=>") {
