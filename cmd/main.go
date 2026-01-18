@@ -22,12 +22,12 @@ func main() {
 
 	switch mode {
 	case utils.AdditionsDeletions:
-		d.DrawCommits(buckets, 800, 300)
+		d.DrawCommits(buckets, 900, 400)
 	case utils.ByDirs:
 		// TODO: specialized to characterizing work inside of top level directories
 		commonDirs := c.GetAllTopLevelDirs(commits)
-		d.DrawCommitsByDirChanged(buckets, commonDirs, 800, 300)
+		d.DrawCommitsByDirChanged(buckets, commonDirs, 900, 400)
 	default:
-		d.DrawCommits(buckets, 800, 300)
+		d.DrawCommits(buckets, 900, 400)
 	}
 }

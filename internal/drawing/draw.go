@@ -14,6 +14,16 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 )
 
+var font *truetype.Font
+
+func init() {
+	var err error
+	font, err = truetype.Parse(goregular.TTF)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 var getTotalChanges = func(commit c.Commit) int {
 	return commit.Deletions + commit.Insertions
 }
@@ -26,6 +36,22 @@ var getDeletions = func(commit c.Commit) int {
 
 type Drawable interface {
 	Draw(dc *gg.Context)
+}
+
+type DrawText struct {
+	x     float64
+	y     float64
+	angle float64
+	text  string
+}
+
+func (t *DrawText) Draw(dc *gg.Context) {
+	face := truetype.NewFace(font, &truetype.Options{Size: 12})
+	dc.SetFontFace(face)
+	dc.SetRGB(1, 1, 1)
+	dc.RotateAbout(t.angle, t.x, t.y)
+	dc.DrawStringAnchored(t.text, t.x, t.y, 0, 0)
+	dc.RotateAbout(-t.angle, t.x, t.y)
 }
 
 type AddDelStackedBar struct {
@@ -62,8 +88,8 @@ func DrawAllOnNewCanvas(drawables []Drawable, width, height int) {
 	}
 }
 
-func ComputeBarChart(buckets [][]c.Commit, width, height int) []Drawable {
-	stepW := float64(width) / float64(len(buckets))
+func ComputeBarChart(buckets [][]c.Commit, width, height, margin int) []Drawable {
+	stepW := float64(width-(margin*2)) / float64(len(buckets))
 	maxChanged := 0
 	for _, bucket := range buckets {
 		value := utils.SumFromCallable(bucket, getTotalChanges)
@@ -73,6 +99,7 @@ func ComputeBarChart(buckets [][]c.Commit, width, height int) []Drawable {
 	}
 	scaleChanges := float64(height) / float64(maxChanged)
 	bars := []Drawable{}
+	textStep := max(1, int(len(buckets)/20))
 	for i, bucket := range buckets {
 		insertions := utils.SumFromCallable(bucket, getInsertions)
 		deletions := utils.SumFromCallable(bucket, getDeletions)
@@ -80,20 +107,31 @@ func ComputeBarChart(buckets [][]c.Commit, width, height int) []Drawable {
 		deleteHeight := float64(deletions) * scaleChanges
 
 		bar := &AddDelStackedBar{
-			x:  stepW * float64(i),
-			y:  float64(height),
-			y1: float64(height) - deleteHeight,
+			x:  stepW*float64(i) + float64(margin),
+			y:  float64(height) + float64(margin),
+			y1: float64(height) - deleteHeight + float64(margin),
 			w:  stepW,
 			hd: -deleteHeight,
 			hi: -insertHeight,
 		}
 		bars = append(bars, bar)
+		if len(bucket) < 1 {
+			continue
+		} else if i%textStep != 0 {
+			continue
+		}
+		bars = append(bars, &DrawText{
+			x:     stepW*float64(i) + float64(margin),
+			y:     float64(height) + 10 + float64(margin),
+			angle: gg.Radians(60),
+			text:  bucket[0].Date.Format("2006/01"),
+		})
 	}
 	return bars
 }
 
 func DrawCommits(buckets [][]c.Commit, width, height int) {
-	bars := ComputeBarChart(buckets, width, height)
+	bars := ComputeBarChart(buckets, width, height-100, 25)
 	DrawAllOnNewCanvas(bars, width, height)
 }
 
@@ -118,10 +156,7 @@ func DrawCommitsByDirChanged(buckets [][]c.Commit, dirs []string, width, height 
 	stepYLegend := legendH / 4
 	xLegend := stepXLegend / 4
 	yLegend := height + stepYLegend/2
-	font, err := truetype.Parse(goregular.TTF)
-	if err != nil {
-		log.Fatal(err)
-	}
+
 	face := truetype.NewFace(font, &truetype.Options{Size: 8})
 	dc := gg.NewContext(width, height+legendH)
 	dc.SetFontFace(face)
@@ -169,7 +204,7 @@ func DrawCommitsByDirChanged(buckets [][]c.Commit, dirs []string, width, height 
 		dc.Stroke()
 	}
 
-	err = dc.SavePNG("out.png")
+	err := dc.SavePNG("out.png")
 	if err != nil {
 		log.Fatalf("Failed to save output!")
 	}
