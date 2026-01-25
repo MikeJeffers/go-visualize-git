@@ -15,7 +15,7 @@ func TestComputeBarChart(t *testing.T) {
 	commit.Insertions = 4
 	bucket := []commits.Commit{commit}
 	nonEmpty := ComputeBarChart([][]commits.Commit{bucket}, 100, 200, 10)
-	if len(nonEmpty) != 1 {
+	if len(nonEmpty) != 2 { // Returns bar and timestamp text
 		t.Errorf("Unexpected length %d", len(nonEmpty))
 	}
 }
